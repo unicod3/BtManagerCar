@@ -1,32 +1,57 @@
 package com.runba.unicod3.btmanager;
 
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.support.v4.util.LogWriter;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
-import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 
 public class MainActivity extends ActionBarActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     Button btnLeft, btnRight,btnUp, btnDown, btnSelect, btnStart, btnA, btnB, btnC, btnD;
-
+    private ArrayList<BluetoothDevice> mDeviceList = new ArrayList<BluetoothDevice>();
+    private ProgressDialog mProgressDlg;
+    private BluetoothAdapter mBluetoothAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        mBluetoothAdapter	= BluetoothAdapter.getDefaultAdapter();
+
+        mProgressDlg 		= new ProgressDialog(this);
+
+        mProgressDlg.setMessage("Scanning...");
+        mProgressDlg.setCancelable(false);
+        mProgressDlg.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                mBluetoothAdapter.cancelDiscovery();
+            }
+        });
+
+
         if (mBluetoothAdapter == null) {
             // Device does not support Bluetooth
-            Toast.makeText(getApplicationContext(),"Cihazınız Bluetooth Desteklemiyor!!", Toast.LENGTH_LONG).show();
+            showToast("Cihazınız Bluetooth Desteklemiyor!!...");
+            finish();
         }
 
 
@@ -41,28 +66,48 @@ public class MainActivity extends ActionBarActivity {
         btnC        = (Button)findViewById(R.id.buttonC);
         btnD        = (Button)findViewById(R.id.buttonD);
 
-
-
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                if (!mBluetoothAdapter.isEnabled()) {
+               /* if (!mBluetoothAdapter.isEnabled()) {
                     Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                    showToast("Checking...");
+                }*/
+
+                //Toast.makeText(getApplicationContext(), "Cihazlar Taranıyor...", Toast.LENGTH_SHORT).show();
+                try {
+                    showToast("Scanning...");
+                    if (mBluetoothAdapter.isDiscovering())
+                        mBluetoothAdapter.cancelDiscovery();
+
+                    mBluetoothAdapter.startDiscovery();
+                }catch (Exception e){
+                    showToast("Error Occured!");
+                    e.printStackTrace();
                 }
-
-
-                Toast.makeText(getApplicationContext(),"Cihazlar Taranıyor...", Toast.LENGTH_SHORT).show();
-
-
-
             }
         });
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        registerReceiver(mReceiver, filter);
+    }
 
+    // Create a BroadcastReceiver for ACTION_FOUND
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            // When discovery finds a device
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                // Get the BluetoothDevice object from the Intent
+                BluetoothDevice device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                mDeviceList.add(device);
+                showToast("Found device " + device.getName());
+            }
+        }
+    };
 
-
+    private void showToast(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -86,6 +131,26 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
+    @Override
+    public void onPause() {
+        if (mBluetoothAdapter != null) {
+            if (mBluetoothAdapter.isDiscovering()) {
+                mBluetoothAdapter.cancelDiscovery();
+            }
+        }
+
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroy(){
+        unregisterReceiver(mReceiver);
+        super.onDestroy();
+    }
+
+
 
 
 }
