@@ -1,5 +1,7 @@
 package com.runba.unicod3.btmanager;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -16,7 +18,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 import java.util.ArrayList;
 
@@ -24,28 +28,19 @@ import java.util.ArrayList;
 public class MainActivity extends ActionBarActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     Button btnLeft, btnRight,btnUp, btnDown, btnSelect, btnStart, btnA, btnB, btnC, btnD;
-    private ArrayList<BluetoothDevice> mDeviceList = new ArrayList<BluetoothDevice>();
+    private ArrayAdapter<String> mDeviceList;
     private ProgressDialog mProgressDlg;
     private BluetoothAdapter mBluetoothAdapter;
+    private AlertDialog.Builder builder;
+    private ListView device_list;
+    private ArrayAdapter<String> modeAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        builder = new AlertDialog.Builder(this);
         mBluetoothAdapter	= BluetoothAdapter.getDefaultAdapter();
-
-        mProgressDlg 		= new ProgressDialog(this);
-
-        mProgressDlg.setMessage("Scanning...");
-        mProgressDlg.setCancelable(false);
-        mProgressDlg.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                mBluetoothAdapter.cancelDiscovery();
-            }
-        });
 
 
         if (mBluetoothAdapter == null) {
@@ -65,32 +60,29 @@ public class MainActivity extends ActionBarActivity {
         btnB        = (Button)findViewById(R.id.buttonB);
         btnC        = (Button)findViewById(R.id.buttonC);
         btnD        = (Button)findViewById(R.id.buttonD);
+        device_list = (ListView)findViewById(R.id.new_devices);
 
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               /* if (!mBluetoothAdapter.isEnabled()) {
+                if (!mBluetoothAdapter.isEnabled()) {
                     Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                    startActivity(enableBtIntent);
                     showToast("Checking...");
-                }*/
+                }
 
                 //Toast.makeText(getApplicationContext(), "Cihazlar Taranıyor...", Toast.LENGTH_SHORT).show();
                 try {
-                    showToast("Scanning...");
-                    if (mBluetoothAdapter.isDiscovering())
-                        mBluetoothAdapter.cancelDiscovery();
-
-                    mBluetoothAdapter.startDiscovery();
-                }catch (Exception e){
-                    showToast("Error Occured!");
+                    Intent serverIntent = new Intent(MainActivity.this, DeviceListActivity.class);
+                    startActivityForResult(serverIntent, CommonUtil.REQUEST_CONNECT_DEVICE);
+                } catch (Exception e) {
+                    showToast("Error Occured! " + e.getMessage());
                     e.printStackTrace();
                 }
             }
         });
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(mReceiver, filter);
     }
+/*
 
     // Create a BroadcastReceiver for ACTION_FOUND
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -100,11 +92,22 @@ public class MainActivity extends ActionBarActivity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                mDeviceList.add(device);
-                showToast("Found device " + device.getName());
+
+                mDeviceList.add(device.getName() + "\n" + device.getAddress());
+
+
+            }else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                setSupportProgressBarIndeterminateVisibility(false);
+                setTitle(R.string.device_list);
+                if (mDeviceList.getCount() == 0) {
+                    String noDevices = getResources().getText(R.string.none_found).toString();
+                    mDeviceList.add(noDevices);
+                    setContentView(R.layout.device_list);
+
+                }
             }
         }
-    };
+    };*/
 
     private void showToast(String message) {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
@@ -146,7 +149,7 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public void onDestroy(){
-        unregisterReceiver(mReceiver);
+        //unregisterReceiver(mReceiver);
         super.onDestroy();
     }
 
