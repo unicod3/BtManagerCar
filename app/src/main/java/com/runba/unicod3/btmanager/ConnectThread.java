@@ -1,61 +1,131 @@
 package com.runba.unicod3.btmanager;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
-import java.io.IOException;
-import java.util.UUID;
-
 /**
- * Created by unicod3 on 4/24/15.
+ *
  */
-public class ConnectThread extends Thread {
-    private final BluetoothSocket mmSocket;
-    private final BluetoothDevice mmDevice;
+public class ConnectThread {
+    BluetoothAdapter mBluetoothAdapter = null;
+    BluetoothSocket mSocket = null;
+    OutputStream mOutStream = null;
 
-    public ConnectThread(BluetoothDevice device) {
-        // Use a temporary object that is later assigned to mmSocket,
-        // because mmSocket is final
-        BluetoothSocket tmp = null;
-        mmDevice = device;
-        // Get a BluetoothSocket to connect with the given BluetoothDevice
-        try {
-            // MY_UUID is the app's UUID string, also used by the server code
-            UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-            if(mmDevice != null)
-             MY_UUID = mmDevice.getUuids()[0].getUuid();
+    String mBluetoothAddress = "";
 
-            tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
-        } catch (IOException e) { e.printStackTrace();}
-        mmSocket = tmp;
-    }
-
-    public void run() {
-        // Cancel discovery because it will slow down the connection
-        //BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        // mBluetoothAdapter.cancelDiscovery();
-
-        try {
-            // Connect the device through the socket. This will block
-            // until it succeeds or throws an exception
-            mmSocket.connect();
-        } catch (IOException connectException) {
-            // Unable to connect; close the socket and get out
-            try {
-                mmSocket.close();
-            } catch (IOException closeException) { }
-            return;
+    public boolean check() {
+        if (mBluetoothAdapter == null) {
+            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         }
 
-        // Do work to manage the connection (in a separate thread)
-        //  manageConnectedSocket(mmSocket);
+        if (mBluetoothAdapter == null) {
+            return false;
+        }
+
+        if (!mBluetoothAdapter.isEnabled()) {
+            return false;
+        }
+
+        return true;
     }
 
-    /** Will cancel an in-progress connection, and close the socket */
-    public void cancel() {
+    public boolean connect(String bluetoothAddress) {
+        if (!mBluetoothAddress.equals(bluetoothAddress) && !mBluetoothAddress.equals("")) {
+            close();
+        }
+
+        mBluetoothAddress = bluetoothAddress;
+
+        if (mBluetoothAdapter == null) {
+            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        }
+
+        if (mBluetoothAdapter == null) {
+            return false;
+        }
+
+        if (!mBluetoothAdapter.isEnabled()) {
+            return false;
+        }
+
         try {
-            mmSocket.close();
-        } catch (IOException e) { }
+            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(mBluetoothAddress);
+
+            if (mSocket == null) {
+                mSocket = device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+
+                mSocket.connect();
+            }
+        } catch (IOException e) {
+            mSocket = null;
+
+            e.printStackTrace();
+            return false;
+        }
+
+        try {
+            mOutStream = mSocket.getOutputStream();
+        } catch (IOException e) {
+            mOutStream = null;
+
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+//	public boolean reconnect() {
+//	return connect(mBluetoothAddress);
+//	}
+
+    public boolean close() {
+        try {
+            if (mOutStream != null) {
+                mOutStream.close();
+            }
+
+            if (mSocket != null) {
+                mSocket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        mOutStream = null;
+        mSocket = null;
+
+        return true;
+    }
+
+    public boolean isConnected() {
+        if (mOutStream == null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean write(String strData) {
+        byte[] buffer = strData.getBytes();
+
+        try {
+            if (mOutStream != null && mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {
+                mOutStream.write(buffer);
+            }
+            else {
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 }

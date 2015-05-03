@@ -1,39 +1,32 @@
 package com.runba.unicod3.btmanager;
 
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.support.v4.util.LogWriter;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
-import java.util.ArrayList;
 
 
 public class MainActivity extends ActionBarActivity {
-    private static final int REQUEST_ENABLE_BT = 1;
     Button btnLeft, btnRight,btnUp, btnDown, btnSelect, btnStart, btnA, btnB, btnC, btnD;
-    private ArrayAdapter<String> mDeviceList;
-    private ProgressDialog mProgressDlg;
     private BluetoothAdapter mBluetoothAdapter;
-    private AlertDialog.Builder builder;
-    private ListView device_list;
-    private ArrayAdapter<String> modeAdapter;
+    protected AlertDialog.Builder builder;
+    protected ListView device_list;
+
+
+    ConnectThread mBluetooth = new ConnectThread();
+    String mBluetoothName = "";
+    String mBluetoothAddress = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,44 +63,40 @@ public class MainActivity extends ActionBarActivity {
                     startActivity(enableBtIntent);
                     showToast("Checking...");
                 }
-
-                //Toast.makeText(getApplicationContext(), "Cihazlar Taranıyor...", Toast.LENGTH_SHORT).show();
                 try {
                     Intent serverIntent = new Intent(MainActivity.this, DeviceListActivity.class);
-                    startActivityForResult(serverIntent, CommonUtil.REQUEST_CONNECT_DEVICE);
+                    startActivityForResult(serverIntent, Helper.REQUEST_CONNECT_DEVICE);
                 } catch (Exception e) {
-                    showToast("Error Occured! " + e.getMessage());
+                    showToast("Error Occurred! " + e.getMessage());
                     e.printStackTrace();
                 }
             }
         });
     }
-/*
 
-    // Create a BroadcastReceiver for ACTION_FOUND
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            // When discovery finds a device
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                // Get the BluetoothDevice object from the Intent
-                BluetoothDevice device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case Helper.REQUEST_CONNECT_DEVICE:
+                if (resultCode == Activity.RESULT_OK) {
+                    mBluetoothName = data.getExtras().getString(Helper.EXTRA_BLUETOOTH_NAME);
+                    mBluetoothAddress = data.getExtras().getString(Helper.EXTRA_BLUETOOTH_ADDRESS);
 
-                mDeviceList.add(device.getName() + "\n" + device.getAddress());
+                   // setBluetoothInfo();
+                    showToast(R.string.connectedDevice + mBluetoothName);
 
-
-            }else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                setSupportProgressBarIndeterminateVisibility(false);
-                setTitle(R.string.device_list);
-                if (mDeviceList.getCount() == 0) {
-                    String noDevices = getResources().getText(R.string.none_found).toString();
-                    mDeviceList.add(noDevices);
-                    setContentView(R.layout.device_list);
-
+                    if (!mBluetoothAddress.equals("")) {
+                        TextView textView = (TextView) findViewById(R.id.connStatus);
+                        if (!mBluetooth.connect(mBluetoothAddress))
+                            textView.setText(R.string.connFailed);
+                        else
+                            textView.setText(R.string.connSucceed);
+                    }
                 }
-            }
+                break;
         }
-    };*/
+    }
+
 
     private void showToast(String message) {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
@@ -149,7 +138,6 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public void onDestroy(){
-        //unregisterReceiver(mReceiver);
         super.onDestroy();
     }
 

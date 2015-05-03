@@ -13,4 +13,7 @@
     <string name="scanning">Taranıyor</string>
     <string name="select_device">Cihaz Seçiniz</string>
     <string name="none_found">Cihaz Bulunamadı</string>
+    <string name="connectedDevice">Bağlanılan Cihaz:</string>
+    <string name="connFailed">Bağlantı Başarısız!</string>
+    <string name="connSucceed">Bağlandı!</string>
 </resources>
