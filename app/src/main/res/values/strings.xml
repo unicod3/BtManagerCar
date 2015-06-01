@@ -19,9 +19,9 @@
     <string name="btnConnect">Bağlan!</string>
     <string name="checking">Checking…</string>
     <string name="errorOccured">Error Occured!</string>
-    <string name="btnLights">IŞIKLAR</string>
-    <string name="btnRight">SAĞ</string>
-    <string name="btnLeft">SOL</string>
-    <string name="btnForward">İLERİ</string>
-    <string name="btnBackward">GERİ</string>
+    <string name="btnLights">IŞIKLAR(a-p)</string>
+    <string name="btnForward">İLERİ(f)</string>
+    <string name="btnBackward">GERİ(b)</string>
+    <string name="btnRight">SAĞ(r)</string>
+    <string name="btnLeft">SOL(l)</string>
 </resources>

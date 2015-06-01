@@ -67,19 +67,18 @@ public class MainActivity extends ActionBarActivity {
                 if (!mBluetoothAdapter.isEnabled()) {
                     Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivity(enableBtIntent);
-                }else{
-                    if(!mBluetooth.mBluetoothAddress.equals("")){
-                        mBluetooth.close();//reset Connection
-                        btnConnect.setText(R.string.btnConnect);
+                }else {
+                    if (!mBluetooth.mBluetoothAddress.equals("")) {//if another connection is already exits then close it first
+                        stopAllActivities();
+                    }else{
+                        try {
+                            Intent serverIntent = new Intent(MainActivity.this, DeviceListActivity.class);
+                            startActivityForResult(serverIntent, Helper.REQUEST_CONNECT_DEVICE);
+                        } catch (Exception e) {
+                            showToast(getString(R.string.errorOccured) + ": " + e.getMessage());
+                            e.printStackTrace();
+                        }
                     }
-                }
-                try {
-                    showToast(getString(R.string.checking));
-                    Intent serverIntent = new Intent(MainActivity.this, DeviceListActivity.class);
-                    startActivityForResult(serverIntent, Helper.REQUEST_CONNECT_DEVICE);
-                } catch (Exception e) {
-                    showToast(getString(R.string.errorOccured) + ": " + e.getMessage());
-                    e.printStackTrace();
                 }
             }
         });
@@ -89,7 +88,7 @@ public class MainActivity extends ActionBarActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 mBluetooth.write("z");
                 if (event.getAction() == MotionEvent.ACTION_DOWN)
-                    mBluetooth.write("a");
+                    mBluetooth.write("f");
                 else if (event.getAction() == MotionEvent.ACTION_UP)
                     mBluetooth.write("e");
                 return false;
@@ -113,7 +112,7 @@ public class MainActivity extends ActionBarActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 mBluetooth.write("z");
                 if (event.getAction() == MotionEvent.ACTION_DOWN)
-                    mBluetooth.write("c");
+                    mBluetooth.write("l");
                 else if (event.getAction() == MotionEvent.ACTION_UP)
                     mBluetooth.write("e");
                 return false;
@@ -125,7 +124,7 @@ public class MainActivity extends ActionBarActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 mBluetooth.write("z");
                 if (event.getAction() == MotionEvent.ACTION_DOWN)
-                    mBluetooth.write("d");
+                    mBluetooth.write("r");
                 else if (event.getAction() == MotionEvent.ACTION_UP)
                     mBluetooth.write("e");
                 return false;
@@ -135,12 +134,16 @@ public class MainActivity extends ActionBarActivity {
         btnLights.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(!mBluetooth.check()) {
+                    stopAllActivities();
+                }
+
                 if(isChecked){
-                    //Lights On
-                    mBluetooth.write("l");
+                    //Turn off the lights
+                    mBluetooth.write("p");
                 }else{
-                    //Lights Off
-                    mBluetooth.write("s");
+                    //Turn on the lights
+                    mBluetooth.write("a");
                 }
             }
         });
@@ -159,9 +162,9 @@ public class MainActivity extends ActionBarActivity {
                     showToast(R.string.connectedDevice + mBluetoothName);
 
                     if (!mBluetoothAddress.equals("")) {
-                        if (!mBluetooth.connect(mBluetoothAddress))
-                            btnConnect.setText(R.string.connFailed);
-                        else {
+                        if (!mBluetooth.connect(mBluetoothAddress)){
+                            setButtonStatus(false); //activate all buttons
+                        }else {
                             btnConnect.setText(R.string.connSucceed);
                             setButtonStatus(true); //activate all buttons
                         }
@@ -205,7 +208,6 @@ public class MainActivity extends ActionBarActivity {
                 mBluetoothAdapter.cancelDiscovery();
             }
         }
-
         super.onPause();
     }
 
@@ -217,6 +219,14 @@ public class MainActivity extends ActionBarActivity {
         btnLights.setEnabled(status);
     }
 
+    private  void stopAllActivities(){
+        mBluetooth.write("s"); //send Stop Signal before it closes the connection
+        btnLights.setChecked(false);
+        setButtonStatus(false); //deactivate buttons
+        mBluetooth.mBluetoothAddress = ""; // reset address
+        mBluetooth.close();//close Connection
+        btnConnect.setText(R.string.btnConnect);
+    }
     @Override
     public void onDestroy(){
         super.onDestroy();

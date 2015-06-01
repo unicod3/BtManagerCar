@@ -63,6 +63,25 @@ public class ConnectThread {
         return true;
     }
 
+    public boolean check() {
+        if (mBluetoothAdapter == null) {
+            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        }
+
+        if (mBluetoothAdapter == null) {
+            return false;
+        }
+
+        if (!mBluetoothAdapter.isEnabled()) {
+            return false;
+        }
+        if (!mSocket.isConnected()) {
+            return false;
+        }
+
+        return true;
+    }
+
     public boolean close() {
         try {
             if (mOutStream != null) {
