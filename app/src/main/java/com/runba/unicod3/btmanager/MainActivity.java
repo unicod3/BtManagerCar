@@ -7,22 +7,28 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+
 
 public class MainActivity extends ActionBarActivity {
-    Button btnLeft, btnRight,btnUp, btnDown, btnSelect, btnStart, btnA, btnB, btnC, btnD;
+    Button  btnConnect, btnForward, btnBackward, btnLeft, btnRight;
     private BluetoothAdapter mBluetoothAdapter;
     protected AlertDialog.Builder builder;
     protected ListView device_list;
-
+    private Switch btnLights;
 
     ConnectThread mBluetooth = new ConnectThread();
     String mBluetoothName = "";
@@ -35,44 +41,111 @@ public class MainActivity extends ActionBarActivity {
         builder = new AlertDialog.Builder(this);
         mBluetoothAdapter	= BluetoothAdapter.getDefaultAdapter();
 
-
         if (mBluetoothAdapter == null) {
             // Device does not support Bluetooth
-            showToast("Cihazınız Bluetooth Desteklemiyor!!...");
+            showToast(getString(R.string.notSuported));
             finish();
         }
 
-
-        btnLeft     = (Button)findViewById(R.id.buttonLEFT);
-        btnRight    = (Button)findViewById(R.id.buttonRIGHT);
-        btnUp       = (Button)findViewById(R.id.buttonUP);
-        btnDown     = (Button)findViewById(R.id.buttonDown);
-        btnSelect   = (Button)findViewById(R.id.buttonSELECT);
-        btnStart    = (Button)findViewById(R.id.buttonSTART);
-        btnA        = (Button)findViewById(R.id.buttonA);
-        btnB        = (Button)findViewById(R.id.buttonB);
-        btnC        = (Button)findViewById(R.id.buttonC);
-        btnD        = (Button)findViewById(R.id.buttonD);
+        btnConnect  = (Button)findViewById(R.id.btnConnect);
+        btnForward  = (Button)findViewById(R.id.btnForward);
+        btnBackward = (Button)findViewById(R.id.btnBackward);
+        btnLeft     = (Button)findViewById(R.id.btnLeft);
+        btnRight    = (Button)findViewById(R.id.btnRight);
+        btnLights   = (Switch)findViewById(R.id.switchLights);
         device_list = (ListView)findViewById(R.id.new_devices);
 
-        btnStart.setOnClickListener(new View.OnClickListener() {
+        //deactivate all buttons
+        setButtonStatus(false);
+
+        //Lights Off
+        btnLights.setChecked(false);
+
+        btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!mBluetoothAdapter.isEnabled()) {
                     Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivity(enableBtIntent);
-                    showToast("Checking...");
+                }else{
+                    if(!mBluetooth.mBluetoothAddress.equals("")){
+                        mBluetooth.close();//reset Connection
+                        btnConnect.setText(R.string.btnConnect);
+                    }
                 }
                 try {
+                    showToast(getString(R.string.checking));
                     Intent serverIntent = new Intent(MainActivity.this, DeviceListActivity.class);
                     startActivityForResult(serverIntent, Helper.REQUEST_CONNECT_DEVICE);
                 } catch (Exception e) {
-                    showToast("Error Occurred! " + e.getMessage());
+                    showToast(getString(R.string.errorOccured) + ": " + e.getMessage());
                     e.printStackTrace();
                 }
             }
         });
+
+        btnForward.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mBluetooth.write("z");
+                if (event.getAction() == MotionEvent.ACTION_DOWN)
+                    mBluetooth.write("a");
+                else if (event.getAction() == MotionEvent.ACTION_UP)
+                    mBluetooth.write("e");
+                return false;
+            }
+        });
+
+        btnBackward.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mBluetooth.write("z");
+                if (event.getAction() == MotionEvent.ACTION_DOWN)
+                    mBluetooth.write("b");
+                else if (event.getAction() == MotionEvent.ACTION_UP)
+                    mBluetooth.write("e");
+                return false;
+            }
+        });
+
+        btnLeft.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mBluetooth.write("z");
+                if (event.getAction() == MotionEvent.ACTION_DOWN)
+                    mBluetooth.write("c");
+                else if (event.getAction() == MotionEvent.ACTION_UP)
+                    mBluetooth.write("e");
+                return false;
+            }
+        });
+
+        btnRight.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mBluetooth.write("z");
+                if (event.getAction() == MotionEvent.ACTION_DOWN)
+                    mBluetooth.write("d");
+                else if (event.getAction() == MotionEvent.ACTION_UP)
+                    mBluetooth.write("e");
+                return false;
+            }
+        });
+
+        btnLights.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    //Lights On
+                    mBluetooth.write("l");
+                }else{
+                    //Lights Off
+                    mBluetooth.write("s");
+                }
+            }
+        });
     }
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -86,11 +159,12 @@ public class MainActivity extends ActionBarActivity {
                     showToast(R.string.connectedDevice + mBluetoothName);
 
                     if (!mBluetoothAddress.equals("")) {
-                        TextView textView = (TextView) findViewById(R.id.connStatus);
                         if (!mBluetooth.connect(mBluetoothAddress))
-                            textView.setText(R.string.connFailed);
-                        else
-                            textView.setText(R.string.connSucceed);
+                            btnConnect.setText(R.string.connFailed);
+                        else {
+                            btnConnect.setText(R.string.connSucceed);
+                            setButtonStatus(true); //activate all buttons
+                        }
                     }
                 }
                 break;
@@ -120,7 +194,6 @@ public class MainActivity extends ActionBarActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -136,12 +209,16 @@ public class MainActivity extends ActionBarActivity {
         super.onPause();
     }
 
+    private void setButtonStatus(boolean status){
+        btnForward.setEnabled(status);
+        btnBackward.setEnabled(status);
+        btnLeft.setEnabled(status);
+        btnRight.setEnabled(status);
+        btnLights.setEnabled(status);
+    }
+
     @Override
     public void onDestroy(){
         super.onDestroy();
     }
-
-
-
-
 }

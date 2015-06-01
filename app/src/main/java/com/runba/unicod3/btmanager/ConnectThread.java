@@ -17,22 +17,6 @@ public class ConnectThread {
 
     String mBluetoothAddress = "";
 
-    public boolean check() {
-        if (mBluetoothAdapter == null) {
-            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        }
-
-        if (mBluetoothAdapter == null) {
-            return false;
-        }
-
-        if (!mBluetoothAdapter.isEnabled()) {
-            return false;
-        }
-
-        return true;
-    }
-
     public boolean connect(String bluetoothAddress) {
         if (!mBluetoothAddress.equals(bluetoothAddress) && !mBluetoothAddress.equals("")) {
             close();
@@ -79,10 +63,6 @@ public class ConnectThread {
         return true;
     }
 
-//	public boolean reconnect() {
-//	return connect(mBluetoothAddress);
-//	}
-
     public boolean close() {
         try {
             if (mOutStream != null) {
@@ -103,14 +83,6 @@ public class ConnectThread {
         return true;
     }
 
-    public boolean isConnected() {
-        if (mOutStream == null) {
-            return false;
-        }
-
-        return true;
-    }
-
     public boolean write(String strData) {
         byte[] buffer = strData.getBytes();
 
@@ -125,7 +97,6 @@ public class ConnectThread {
             e.printStackTrace();
             return false;
         }
-
         return true;
     }
 }
