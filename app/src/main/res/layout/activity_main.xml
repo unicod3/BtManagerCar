@@ -5,7 +5,8 @@
     android:paddingTop="@dimen/activity_horizontal_margin"
     android:paddingBottom="@dimen/activity_horizontal_margin" tools:context=".MainActivity"
     android:weightSum="1"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:baselineAligned="false">
 
 
 
