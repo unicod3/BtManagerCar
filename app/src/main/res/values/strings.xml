@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BtManager</string>
+    <string name="app_name">BtManager | Proje Garajı </string>
     <string name="notSuported">Cihazınız Bluetooth Desteklemiyor!!…</string>
     <string name="action_settings">Settings</string>
     <string name="author">Proje Garajı</string>

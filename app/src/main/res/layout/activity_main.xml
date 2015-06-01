@@ -23,19 +23,19 @@
                 android:id="@+id/switchLights"
                 android:layout_gravity="center_vertical"
                 android:checked="false"
-                android:layout_weight="0.10" />
+                android:layout_weight="0.075" />
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="0px"
-                android:layout_weight="0.45"
+                android:layout_weight="0.46"
                 android:text="@string/btnForward"
                 android:id="@+id/btnForward" />
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="0px"
-                android:layout_weight="0.45"
+                android:layout_weight="0.46"
                 android:text="@string/btnBackward"
                 android:id="@+id/btnBackward" />
 
