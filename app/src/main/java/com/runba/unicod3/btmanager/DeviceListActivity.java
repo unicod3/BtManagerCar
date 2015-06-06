@@ -24,9 +24,6 @@ import java.util.Set;
  */
 public class DeviceListActivity extends Activity {
 
-    // Debugging
-    private static final String TAG = "DeviceListActivity";
-    private static final boolean D = true;
 
     // Member fields
     private BluetoothAdapter mBtAdapter;
@@ -117,9 +114,6 @@ public class DeviceListActivity extends Activity {
      * Start device discover with the BluetoothAdapter
      */
     private void doDiscovery() {
-        if (D)
-            Log.d(TAG, "doDiscovery()");
-
         if (mBtAdapter == null)
             return;
 
