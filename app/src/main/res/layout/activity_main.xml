@@ -18,25 +18,25 @@
             android:layout_weight="0.3">
 
             <Switch
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="0px"
                 android:text="@string/btnLights"
                 android:id="@+id/switchLights"
                 android:layout_gravity="center_vertical"
                 android:checked="false"
-                android:layout_weight="0.075" />
+                android:layout_weight="0.1" />
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="0px"
-                android:layout_weight="0.46"
+                android:layout_weight="0.40"
                 android:text="@string/btnForward"
                 android:id="@+id/btnForward" />
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="0px"
-                android:layout_weight="0.46"
+                android:layout_weight="0.40"
                 android:text="@string/btnBackward"
                 android:id="@+id/btnBackward" />
 
@@ -52,7 +52,7 @@
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="0px"
-                android:layout_weight="0.15">
+                android:layout_weight="0.20">
 
                 <Button
                     android:layout_width="match_parent"
@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0px"
                 android:layout_gravity="center_horizontal"
-                android:layout_weight="0.85">
+                android:layout_weight="0.80">
 
                 <Button
                     android:layout_width="0px"
